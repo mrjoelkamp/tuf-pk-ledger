@@ -1,0 +1,66 @@
+{
+ "signatures": [
+  {
+   "keyid": "e642e70171046d6d97efdea76792c373d863c55c054c4287c999c62c6011120f",
+   "sig": ""
+  }
+ ],
+ "signed": {
+  "_type": "root",
+  "consistent_snapshot": true,
+  "expires": "2024-11-08T18:46:14Z",
+  "keys": {
+   "abcd": {
+    "keytype": "sigstore-oidc",
+    "keyval": {
+     "identity": "https://github.com/mrjoelkamp/tuf-pk-ledger/.github/workflows/online-sign.yml@refs/heads/main",
+     "issuer": "https://token.actions.githubusercontent.com"
+    },
+    "scheme": "Fulcio",
+    "x-tuf-on-ci-online-uri": "sigstore:"
+   },
+   "e642e70171046d6d97efdea76792c373d863c55c054c4287c999c62c6011120f": {
+    "keytype": "ecdsa",
+    "keyval": {
+     "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuMtH9o0x/EHc/Rzoco4RyqmR7UwA\n0sHROw/79CMdbPh3/egmMxci3N+dJl6Re/cNkqR9eQy7joULS2K9Oxgxww==\n-----END PUBLIC KEY-----\n"
+    },
+    "scheme": "ecdsa-sha2-nistp256",
+    "x-tuf-on-ci-keyowner": "@mrjoelkamp"
+   }
+  },
+  "roles": {
+   "root": {
+    "keyids": [
+     "e642e70171046d6d97efdea76792c373d863c55c054c4287c999c62c6011120f"
+    ],
+    "threshold": 1
+   },
+   "snapshot": {
+    "keyids": [
+     "abcd"
+    ],
+    "threshold": 1,
+    "x-tuf-on-ci-expiry-period": 365,
+    "x-tuf-on-ci-signing-period": 60
+   },
+   "targets": {
+    "keyids": [
+     "e642e70171046d6d97efdea76792c373d863c55c054c4287c999c62c6011120f"
+    ],
+    "threshold": 1
+   },
+   "timestamp": {
+    "keyids": [
+     "abcd"
+    ],
+    "threshold": 1,
+    "x-tuf-on-ci-expiry-period": 2,
+    "x-tuf-on-ci-signing-period": 1
+   }
+  },
+  "spec_version": "1.0.31",
+  "version": 1,
+  "x-tuf-on-ci-expiry-period": 365,
+  "x-tuf-on-ci-signing-period": 60
+ }
+}
