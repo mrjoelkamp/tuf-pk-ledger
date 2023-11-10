@@ -3,7 +3,7 @@ set -xeo pipefail
 
 # Use ENV for OP_URI or default to github
 OP_URI="${OP_URI:-"https://token.actions.githubusercontent.com"}"
-OP_URI_NORMALIZED="$($OP_URI%/)"
+OP_URI_NORMALIZED="${OP_URI%/}"
 OP_ID=$(echo "$OP_URI_NORMALIZED" | cut -d'/' -f3)
 REPO_PATH=$(pwd)
 OIDC_CONFIG_URI=${OP_URI_NORMALIZED}/.well-known/openid-configuration
