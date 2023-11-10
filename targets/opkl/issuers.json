@@ -7,6 +7,10 @@
         { 
             "iss": "https://accounts.google.com",
             "pkl": "/targets/opkl/accounts.google.com/pkl.json"
+        },
+        {
+            "iss": "https://login.microsoftonline.com/common/v2.0",
+            "pkl": "targets/opkl/login.microsoftonline.com/pkl.json"
         }
     ]
 }

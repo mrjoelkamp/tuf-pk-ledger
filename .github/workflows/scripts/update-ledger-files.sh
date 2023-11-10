@@ -3,10 +3,10 @@ set -xeo pipefail
 
 # Use ENV for OP_URI or default to github
 OP_URI="${OP_URI:-"https://token.actions.githubusercontent.com"}"
-OP_ID=${OP_URI#https://}
+OP_ID=$(echo "$OP_URI" | cut -d'/' -f3)
 REPO_PATH=$(pwd)
 OIDC_CONFIG_URI=${OP_URI}/.well-known/openid-configuration
-LEDGER_PATH=targets/opkl/$OP_ID
+LEDGER_PATH=targets/opkl/${OP_ID}
 PKL_INDEX=targets/opkl/${OP_ID}/pkl.json
 
 # Get OIDC provider's openid-configuration
