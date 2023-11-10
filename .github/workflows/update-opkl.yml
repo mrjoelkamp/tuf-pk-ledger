@@ -1,0 +1,25 @@
+name: Update OPKL
+run-name: Update OPKL - $(( inputs.op_uri ))
+on:
+    workflow_dispatch:
+        inputs:
+            op_uri:
+                description: OIDC provider discovery URI
+                required: true
+                default: https://token.actions.githubusercontent.com
+jobs:
+    update-opkl:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: checkout repository
+              uses: actions/checkout@v3
+            - name: update ledger files
+              env:
+                OP_URI: $(( inputs.op_uri ))
+              run: ./.github/workflows/scripts/update-ledger-files.sh
+            - name: commit changes
+              env:
+                COMMIT_MESSAGE: "chore: update opkl ledger files for $(( inputs.op_uri ))"
+              run: ./.github/workflows/scripts/git-commit.sh
