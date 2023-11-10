@@ -11,6 +11,14 @@
         {
             "iss": "https://login.microsoftonline.com/common/v2.0",
             "pkl": "/targets/opkl/login.microsoftonline.com/pkl.json"
+        },
+        {
+            "iss": "https://docker.okta.com",
+            "pkl": "/targets/opkl/docker.okta.com/pkl.json"
+        },
+        {
+            "iss": "https://gitlab.com",
+            "pkl": "/targets/opkl/gitlab.com/pkl.json"
         }
     ]
 }
