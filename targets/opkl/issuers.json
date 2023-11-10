@@ -10,7 +10,7 @@
         },
         {
             "iss": "https://login.microsoftonline.com/common/v2.0",
-            "pkl": "targets/opkl/login.microsoftonline.com/pkl.json"
+            "pkl": "/targets/opkl/login.microsoftonline.com/pkl.json"
         }
     ]
 }
