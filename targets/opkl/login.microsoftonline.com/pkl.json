@@ -1,0 +1,20 @@
+{
+  "pkl": [
+    {
+      "kid": "9GmnyFPkhc3hOuR22mvSvgnLo7Y",
+      "path": "/targets/opkl/login.microsoftonline.com/9GmnyFPkhc3hOuR22mvSvgnLo7Y.json"
+    },
+    {
+      "kid": "lHLIu4moKqzPcokwlfCRPHyjl5g",
+      "path": "/targets/opkl/login.microsoftonline.com/lHLIu4moKqzPcokwlfCRPHyjl5g.json"
+    },
+    {
+      "kid": "yreX2PsLi-qkbR8QDOmB_ySxp8Q",
+      "path": "/targets/opkl/login.microsoftonline.com/yreX2PsLi-qkbR8QDOmB_ySxp8Q.json"
+    },
+    {
+      "kid": "XouXLYQ1Tip5odYajiCtFVgVaEs",
+      "path": "/targets/opkl/login.microsoftonline.com/XouXLYQ1Tip5odYajiCtFVgVaEs.json"
+    }
+  ]
+}
