@@ -15,7 +15,6 @@ config_response=$(curl -s $OIDC_CONFIG_URI)
 # Parse jwks_uri from openid-configuration
 if [ $? -eq 0 ]; then
     jwks_uri=$(echo "$config_response" | jq -r '.jwks_uri')
-    request_time=$(date +%s)
 else
     echo "error: failed to retrieve data from ${OIDC_CONFIG_URI}"
     exit 1
@@ -23,6 +22,7 @@ fi
 
 # Get OIDC provider's JWKS
 jwks_response=$(curl -s ${jwks_uri})
+request_time=$(date +%s)
 
 # Parse JWKS
 if [ $? -eq 0 ]; then
