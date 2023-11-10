@@ -1,0 +1,12 @@
+{
+    "issuers": [
+        {
+            "iss": "https://token.actions.githubusercontent.com",
+            "pkl": "/targets/opkl/token.actions.githubusercontent.com/pkl.json"
+        },
+        { 
+            "iss": "https://accounts.google.com",
+            "pkl": "/targets/opkl/accounts.google.com/pkl.json"
+        }
+    ]
+}
