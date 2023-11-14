@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -48,6 +49,14 @@ func writeJSONFile(path string, v any) error {
 	data, err := json.MarshalIndent(&v, "", "  ")
 	if err != nil {
 		return err
+	}
+
+	// Ensure the directory structure exists
+	dir := filepath.Dir(path)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
 	}
 
 	// Write JSON data to a file

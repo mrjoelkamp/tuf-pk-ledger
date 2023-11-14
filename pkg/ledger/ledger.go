@@ -49,7 +49,7 @@ func Update(providerURI string) error {
 
 	// create new entry if provider not found
 	if opIdxItem.Path == "" {
-		opIdxItem := IssIndexItem{
+		opIdxItem = IssIndexItem{
 			Issuer: stripTrailingSlash(parsedURI.String()),
 			Path:   filepath.Join(LedgerPath, parsedURI.Host, LedgerIndexFilename),
 		}
