@@ -42,7 +42,7 @@ func Update(providerURI string) error {
 	log.Debugf("[parsed uri] scheme=%s host=%s path=%s", parsedURI.Scheme, parsedURI.Host, parsedURI.Path)
 
 	// get provider index
-	opIdx, err := getIssuerIndex(filepath.Join(LedgerPath, LedgerIndexFilename))
+	opIdx, err := getIssuerIndex(filepath.Join(LedgerPath, IssuerIndexFilename))
 	if err != nil {
 		return err
 	}
@@ -57,8 +57,8 @@ func Update(providerURI string) error {
 		return err
 	}
 	log.Debugf(opIdxItem.Path)
+	// create new entry if provider not found
 	if opIdxItem.Path == "" {
-		// create new entry if provider not found
 		iss := IssIndexItem{
 			Issuer: stripTrailingSlash(parsedURI.String()),
 			Path:   filepath.Join(LedgerPath, parsedURI.Host, LedgerIndexFilename),
@@ -246,9 +246,9 @@ func getIssuerIndex(filePath string) (IssIndex, error) {
 		return IssIndex{}, err
 	}
 	if exists {
-		err := readJSONFile(filepath.Join(LedgerPath, IssuerIndexFilename), opIdx)
+		err := readJSONFile(filePath, &opIdx)
 		if err != nil {
-			return IssIndex{}, nil
+			return IssIndex{}, err
 		}
 		return opIdx, nil
 	}

@@ -1,6 +1,10 @@
 {
   "issuers": [
     {
+      "iss": "https://gitlab.com",
+      "path": "targets/opkl/gitlab.com/pkl.json"
+    },
+    {
       "iss": "https://token.actions.githubusercontent.com",
       "path": "targets/opkl/token.actions.githubusercontent.com/pkl.json"
     }
