@@ -136,6 +136,7 @@ func Update(providerURI string) error {
 	}
 	// detect rotated keys
 	if len(remainingActiveJWKs) > 0 {
+		log.Infof("remaining active JWKs: %d", len(remainingActiveJWKs))
 		// key was rotated set exp and update ledger index
 		for id, rotatedJWK := range remainingActiveJWKs {
 			// set exp for jwk
