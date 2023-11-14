@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"path/filepath"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/mrjoelkamp/opkl-updater/config"
 	"github.com/mrjoelkamp/opkl-updater/log"
 )
@@ -22,11 +21,8 @@ const (
 	StatusRevoked       = "revoked"
 )
 
-var validate *validator.Validate
-
 func Update(providerURI string) error {
 	cfg := config.Config()
-	validate = validator.New(validator.WithRequiredStructEnabled())
 
 	// validate input
 	parsedURI, err := url.ParseRequestURI(providerURI)
@@ -40,10 +36,6 @@ func Update(providerURI string) error {
 
 	// get provider index
 	opIdx, err := getIssuerIndex(filepath.Join(LedgerPath, IssuerIndexFilename))
-	if err != nil {
-		return err
-	}
-	err = validate.Struct(opIdx)
 	if err != nil {
 		return err
 	}
