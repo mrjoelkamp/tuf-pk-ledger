@@ -5,8 +5,38 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"time"
+
+	"github.com/mrjoelkamp/opkl-updater/log"
 )
+
+func parseProviderURI(providerURI string) (*url.URL, error) {
+	parsedURI, err := url.ParseRequestURI(providerURI)
+	if err != nil {
+		return nil, err
+	}
+	if parsedURI.Scheme != "https" || !parsedURI.IsAbs() {
+		return nil, fmt.Errorf("Provider URI [%s] is not valid", providerURI)
+	}
+	log.Infof("[parsed uri] scheme=%s host=%s path=%s", parsedURI.Scheme, parsedURI.Host, parsedURI.Path)
+	return parsedURI, nil
+}
+
+func createNewProviderIndexEntry(parsedURI *url.URL, opIdx IssIndex) (IssIndexItem, error) {
+	issuer := stripTrailingSlash(parsedURI.String())
+	opIdxItem := IssIndexItem{
+		Path: filepath.Join(LedgerPath, parsedURI.Host, LedgerIndexFilename),
+	}
+	// add to issuer index
+	opIdx.Issuers[issuer] = opIdxItem
+	err := writeJSONFile(filepath.Join(LedgerPath, IssuerIndexFilename), opIdx)
+	if err != nil {
+		return IssIndexItem{}, err
+	}
+	log.Infof("Created new provider index. issuer=%s path=%s", issuer, opIdxItem.Path)
+	return opIdxItem, nil
+}
 
 func getOpenIDConfiguration(url *url.URL) (map[string]interface{}, error) {
 	// Construct the URL for the OpenID configuration
