@@ -62,10 +62,10 @@ func getJWKS(url *url.URL) (JWKS, int64, error) {
 }
 
 func getIssuerIndex(filePath string) (IssIndex, error) {
-	var opIdx IssIndex
+	opIdx := IssIndex{Issuers: make(map[string]IssIndexItem)}
 	exists, err := fileExists(filePath)
 	if err != nil {
-		return IssIndex{}, err
+		return opIdx, err
 	}
 	if exists {
 		err := readJSONFile(filePath, &opIdx)
@@ -79,10 +79,9 @@ func getIssuerIndex(filePath string) (IssIndex, error) {
 
 func lookupProvider(parsedURI *url.URL, index IssIndex) (IssIndexItem, error) {
 	nomarlizedURI := stripTrailingSlash(parsedURI.String())
-	for _, iss := range index.Issuers {
-		if iss.Issuer == nomarlizedURI {
-			return iss, nil
-		}
+	iss, ok := index.Issuers[nomarlizedURI]
+	if ok {
+		return iss, nil
 	}
 	return IssIndexItem{}, nil
 }

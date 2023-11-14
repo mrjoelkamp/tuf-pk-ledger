@@ -1,9 +1,8 @@
 {
-  "pkl": [
-    {
-      "kid": "LUVZpgj889YJ-pPQ-rQXumR--74vguNuNXojwaad1Xw",
+  "pkl": {
+    "LUVZpgj889YJ-pPQ-rQXumR--74vguNuNXojwaad1Xw": {
       "status": "active",
       "path": "targets/opkl/docker.okta.com/3db0f757d2442a502650b57c533ed1acd4e354c139cb94456ab0f77b293fa3e9.json"
     }
-  ]
+  }
 }

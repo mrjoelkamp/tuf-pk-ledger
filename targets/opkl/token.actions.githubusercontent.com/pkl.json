@@ -1,14 +1,12 @@
 {
-  "pkl": [
-    {
-      "kid": "1F2AB83404C08EC9EA0BB99DAED02186B091DBF4",
-      "status": "active",
-      "path": "targets/opkl/token.actions.githubusercontent.com/ff99c5291a46f7416ac16974685a5d90bbed543eec763c786436c9184986361a.json"
-    },
-    {
-      "kid": "001DDCD014A848E8824577B3E4F3AEDB3BCF5FFD",
+  "pkl": {
+    "001DDCD014A848E8824577B3E4F3AEDB3BCF5FFD": {
       "status": "active",
       "path": "targets/opkl/token.actions.githubusercontent.com/47b91b6b0b44d189d9cd5ce8cea7ada0f8422f32e1cdc07874bdfe7699b513e1.json"
+    },
+    "1F2AB83404C08EC9EA0BB99DAED02186B091DBF4": {
+      "status": "active",
+      "path": "targets/opkl/token.actions.githubusercontent.com/ff99c5291a46f7416ac16974685a5d90bbed543eec763c786436c9184986361a.json"
     }
-  ]
+  }
 }

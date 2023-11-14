@@ -49,17 +49,17 @@ func Update(providerURI string) error {
 
 	// create new entry if provider not found
 	if opIdxItem.Path == "" {
+		issuer := stripTrailingSlash(parsedURI.String())
 		opIdxItem = IssIndexItem{
-			Issuer: stripTrailingSlash(parsedURI.String()),
-			Path:   filepath.Join(LedgerPath, parsedURI.Host, LedgerIndexFilename),
+			Path: filepath.Join(LedgerPath, parsedURI.Host, LedgerIndexFilename),
 		}
-		// append to issuer index
-		opIdx.Issuers = append(opIdx.Issuers, opIdxItem)
+		// add to issuer index
+		opIdx.Issuers[issuer] = opIdxItem
 		err = writeJSONFile(filepath.Join(LedgerPath, IssuerIndexFilename), opIdx)
 		if err != nil {
 			return err
 		}
-		log.Infof("Created new provider index. issuer=%s path=%s", opIdxItem.Issuer, opIdxItem.Path)
+		log.Infof("Created new provider index. issuer=%s path=%s", issuer, opIdxItem.Path)
 	}
 
 	// get key ledger index
@@ -68,13 +68,13 @@ func Update(providerURI string) error {
 		return err
 	}
 
-	// TODO get active keys to detect key rotation
-	// var activeJWKs []JWK
-	// for _, jwkIdx := range pklIdx.Items {
-	// 	if jwkIdx.Status == "active" {
-	// 		activeJWKs = append(activeJWKs, jwkIdx.Path)
-	// 	}
-	// }
+	// get active keys to detect key rotation
+	remainingActiveJWKs := make(map[string]PklIndexItem)
+	for id, jwkIdx := range pklIdx.Items {
+		if jwkIdx.Status == "active" {
+			remainingActiveJWKs[id] = jwkIdx
+		}
+	}
 
 	// query openid-configuration
 	cfgOIDC, err := getOpenIDConfiguration(parsedURI)
@@ -106,6 +106,9 @@ func Update(providerURI string) error {
 	for _, jwk := range jwks.Keys {
 		// check if JWK already exists in ledger
 		if jwkInLedger(jwk, pklIdx) {
+			// reconcile active jwk to detect key rotation (active key not in JWKS response)
+			reconcileActiveJWK(jwk, remainingActiveJWKs)
+
 			// TODO check configuration parameter for fail-safe updates
 			// then update exp time based on JWKS query timestamp if ture
 			continue
@@ -125,15 +128,38 @@ func Update(providerURI string) error {
 
 		// add JWK to ledger index
 		newPklIndexItem := PklIndexItem{
-			Kid:    jwk.Kid,
 			Status: StatusActive,
 			Path:   ledgerFilePath,
 		}
-		pklIdx.Items = append(pklIdx.Items, newPklIndexItem)
+		pklIdx.Items[jwk.Kid] = newPklIndexItem
 		pklIdxUpdated = true
-
-		// TODO detect key rotation (active key not in JWKS response)
 	}
+	// detect rotated keys
+	if len(remainingActiveJWKs) > 0 {
+		// key was rotated set exp and update ledger index
+		for id, rotatedJWK := range remainingActiveJWKs {
+			// set exp for jwk
+			var jwk PklFile
+			err = readJSONFile(rotatedJWK.Path, &jwk)
+			if err != nil {
+				return err
+			}
+			jwk.Exp = &timestamp
+			err = writeJSONFile(rotatedJWK.Path, jwk)
+			if err != nil {
+				return err
+			}
+
+			// update ledger index status
+			indexItem, ok := pklIdx.Items[id]
+			if ok {
+				indexItem.Status = StatusArchived
+				pklIdx.Items[id] = indexItem
+			}
+			pklIdxUpdated = true
+		}
+	}
+
 	// write ledger index updates if modified
 	if pklIdxUpdated {
 		err = writeJSONFile(opIdxItem.Path, pklIdx)
@@ -145,25 +171,31 @@ func Update(providerURI string) error {
 	return nil
 }
 
+func reconcileActiveJWK(jwk JWK, activeJWKs map[string]PklIndexItem) {
+	_, ok := activeJWKs[jwk.Kid]
+	if ok {
+		delete(activeJWKs, jwk.Kid)
+	}
+}
+
 func jwkInLedger(jwk JWK, idx PklIndex) bool {
-	for _, item := range idx.Items {
-		if item.Kid == jwk.Kid {
-			return true
-		}
+	_, ok := idx.Items[jwk.Kid]
+	if ok {
+		return true
 	}
 	return false
 }
 
 func getPklIndex(filePath string) (PklIndex, error) {
-	var pklIdx PklIndex
+	pklIdx := PklIndex{make(map[string]PklIndexItem)}
 	exists, err := fileExists(filePath)
 	if err != nil {
-		return PklIndex{}, err
+		return pklIdx, err
 	}
 	if exists {
 		err := readJSONFile(filePath, &pklIdx)
 		if err != nil {
-			return PklIndex{}, err
+			return pklIdx, err
 		}
 		return pklIdx, nil
 	}

@@ -44,20 +44,18 @@ type PklFile struct {
 }
 
 type PklIndexItem struct {
-	Kid    string `json:"kid"`
 	Status string `json:"status"` // TODO validate it is one of active|archived|revoked
 	Path   string `json:"path"`
 }
 
 type PklIndex struct {
-	Items []PklIndexItem `json:"pkl"`
+	Items map[string]PklIndexItem `json:"pkl"`
 }
 
 type IssIndexItem struct {
-	Issuer string `json:"iss"`
-	Path   string `json:"path"`
+	Path string `json:"path"`
 }
 
 type IssIndex struct {
-	Issuers []IssIndexItem `json:"issuers"`
+	Issuers map[string]IssIndexItem `json:"issuers"`
 }
