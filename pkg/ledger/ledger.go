@@ -120,7 +120,7 @@ func Update(providerURI string) error {
 	}
 
 	// detect rotated keys
-	pklIdxUpdated, err = detectRotatedJWk(pklIdx, remainingActiveJWKs, timestamp)
+	pklIdxUpdated, err = detectRotatedJWK(pklIdx, remainingActiveJWKs, timestamp)
 
 	// write ledger index updates if modified
 	if pklIdxUpdated {
@@ -133,7 +133,7 @@ func Update(providerURI string) error {
 	return nil
 }
 
-func detectRotatedJWk(pklIdx PklIndex, remainingActiveJWKs map[string]PklIndexItem, timestamp int64) (bool, error) {
+func detectRotatedJWK(pklIdx PklIndex, remainingActiveJWKs map[string]PklIndexItem, timestamp int64) (bool, error) {
 	if len(remainingActiveJWKs) > 0 {
 		log.Infof("remaining active JWKs: %d", len(remainingActiveJWKs))
 		// key was rotated set exp and update ledger index
