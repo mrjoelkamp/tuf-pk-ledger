@@ -64,9 +64,20 @@ func getOpenIDConfiguration(url *url.URL) (map[string]interface{}, error) {
 	return config, nil
 }
 
-func getJWKS(url *url.URL) (JWKS, int64, error) {
+func getJWKS(providerURI *url.URL) (JWKS, int64, error) {
+	// query openid-configuration for jwks_uri
+	cfgOIDC, err := getOpenIDConfiguration(providerURI)
+	if err != nil {
+		return JWKS{}, 0, err
+	}
+	jwksURI, ok := cfgOIDC[JwksKey].(string)
+	if !ok {
+		log.Errorf("Key '%s' not found in configuration", jwksURI)
+	}
+	parsedJwksURI, err := url.ParseRequestURI(jwksURI)
+
 	// Make a GET request to the JWKS endpoint
-	resp, err := http.Get(url.String())
+	resp, err := http.Get(parsedJwksURI.String())
 	if err != nil {
 		return JWKS{}, 0, err
 	}

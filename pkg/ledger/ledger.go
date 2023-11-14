@@ -1,7 +1,6 @@
 package ledger
 
 import (
-	"net/url"
 	"path/filepath"
 
 	"github.com/mrjoelkamp/opkl-updater/config"
@@ -60,19 +59,8 @@ func Update(providerURI string) error {
 		}
 	}
 
-	// query openid-configuration for jwks_uri
-	cfgOIDC, err := getOpenIDConfiguration(parsedURI)
-	if err != nil {
-		return err
-	}
-	jwksURI, ok := cfgOIDC[JwksKey].(string)
-	if !ok {
-		log.Errorf("Key '%s' not found in configuration", jwksURI)
-	}
-	parsedJwksURI, err := url.ParseRequestURI(jwksURI)
-
 	// query jwks_uri and record time
-	jwks, timestamp, err := getJWKS(parsedJwksURI)
+	jwks, timestamp, err := getJWKS(parsedURI)
 	if err != nil {
 		return err
 	}
@@ -120,7 +108,10 @@ func Update(providerURI string) error {
 	}
 
 	// detect rotated keys
-	pklIdxUpdated, err = detectRotatedJWK(pklIdx, remainingActiveJWKs, timestamp)
+	err = detectRotatedJWK(pklIdx, remainingActiveJWKs, timestamp, pklIdxUpdated)
+	if err != nil {
+		return err
+	}
 
 	// write ledger index updates if modified
 	if pklIdxUpdated {
@@ -133,7 +124,7 @@ func Update(providerURI string) error {
 	return nil
 }
 
-func detectRotatedJWK(pklIdx PklIndex, remainingActiveJWKs map[string]PklIndexItem, timestamp int64) (bool, error) {
+func detectRotatedJWK(pklIdx PklIndex, remainingActiveJWKs map[string]PklIndexItem, timestamp int64, updated bool) error {
 	if len(remainingActiveJWKs) > 0 {
 		log.Infof("remaining active JWKs: %d", len(remainingActiveJWKs))
 		// key was rotated set exp and update ledger index
@@ -142,12 +133,12 @@ func detectRotatedJWK(pklIdx PklIndex, remainingActiveJWKs map[string]PklIndexIt
 			var jwk PklFile
 			err := readJSONFile(rotatedJWK.Path, &jwk)
 			if err != nil {
-				return false, err
+				return err
 			}
 			jwk.Exp = &timestamp
 			err = writeJSONFile(rotatedJWK.Path, jwk)
 			if err != nil {
-				return false, err
+				return err
 			}
 
 			// update ledger index status
@@ -156,10 +147,11 @@ func detectRotatedJWK(pklIdx PklIndex, remainingActiveJWKs map[string]PklIndexIt
 				indexItem.Status = StatusArchived
 				pklIdx.Items[id] = indexItem
 			}
-			return true, nil
+			updated = true
+			return nil
 		}
 	}
-	return false, nil
+	return nil
 }
 
 func reconcileActiveJWK(jwk JWK, activeJWKs map[string]PklIndexItem) {
