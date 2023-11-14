@@ -1,16 +1,10 @@
 package ledger
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/mrjoelkamp/opkl-updater/config"
@@ -23,6 +17,7 @@ const (
 	LedgerPath          = "targets/opkl"
 	IssuerIndexFilename = "issuers.json"
 	LedgerIndexFilename = "pkl.json"
+	LedgerFileExt       = ".json"
 )
 
 var validate *validator.Validate
@@ -57,6 +52,7 @@ func Update(providerURI string) error {
 		return err
 	}
 	log.Debugf(opIdxItem.Path)
+
 	// create new entry if provider not found
 	if opIdxItem.Path == "" {
 		opIdxItem := IssIndexItem{
@@ -65,25 +61,23 @@ func Update(providerURI string) error {
 		}
 		// append to issuer index
 		opIdx.Issuers = append(opIdx.Issuers, opIdxItem)
-		data, err := jsonStructToString(opIdx)
+		err = writeJSONFile(filepath.Join(LedgerPath, IssuerIndexFilename), opIdx)
 		if err != nil {
 			return err
 		}
-		createFile(filepath.Join(LedgerPath, IssuerIndexFilename), data)
 		log.Infof("Created new provider index. issuer=%s path=%s", opIdxItem.Issuer, opIdxItem.Path)
 	}
 
 	// get key ledger index
-	// pklIdx, err := getPklIndex(opIdxItem.Path)
-	// if err != nil {
-	// 	return err
-	// }
+	pklIdx, err := getPklIndex(opIdxItem.Path)
+	if err != nil {
+		return err
+	}
 
-	// get active keys
+	// TODO get active keys to detect key rotation
 	// var activeJWKs []JWK
 	// for _, jwkIdx := range pklIdx.Items {
 	// 	if jwkIdx.Status == "active" {
-
 	// 		activeJWKs = append(activeJWKs, jwkIdx.Path)
 	// 	}
 	// }
@@ -114,156 +108,43 @@ func Update(providerURI string) error {
 	log.Debugf("timestamp=%d", timestamp)
 
 	// for each JWK in JWKS
-	// check if JWK already exists in ledger
-	// if JWK doesn't exist create ledger file
-	// if JWK does exist check configuration parameter for fail-safe updates
-	// update ledger index
-
-	// detect key rotation (active key not in JWKS response)
-
-	return nil
-}
-
-func getOpenIDConfiguration(url *url.URL) (map[string]interface{}, error) {
-	// Construct the URL for the OpenID configuration
-	configURL := url.JoinPath(OidcDiscoveryPath)
-
-	// Make a GET request to the OpenID configuration endpoint
-	resp, err := http.Get(configURL.String())
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Check if the response status code is OK (200)
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Failed to retrieve OpenID configuration. Status code: %d", resp.StatusCode)
-	}
-
-	// Parse the JSON response
-	var config map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&config)
-	if err != nil {
-		return nil, err
-	}
-
-	return config, nil
-}
-
-func getJWKS(url *url.URL) (JWKS, int64, error) {
-	// Make a GET request to the JWKS endpoint
-	resp, err := http.Get(url.String())
-	if err != nil {
-		return JWKS{}, 0, err
-	}
-	defer resp.Body.Close()
-	timestamp := time.Now().Unix()
-
-	// Check if the response status code is OK (200)
-	if resp.StatusCode != http.StatusOK {
-		return JWKS{}, 0, fmt.Errorf("Failed to retrieve JWKS. Status code: %d", resp.StatusCode)
-	}
-
-	// Parse the JSON response
-	var jwks JWKS
-	err = json.NewDecoder(resp.Body).Decode(&jwks)
-	if err != nil {
-		return JWKS{}, 0, err
-	}
-
-	return jwks, timestamp, nil
-}
-
-func jsonStructToString(v any) (string, error) {
-	stringData, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(stringData), nil
-}
-
-func hashString(input string) string {
-	s256 := sha256.New()
-	s256.Write([]byte(input))
-	hashSum := s256.Sum(nil)
-	hash := hex.EncodeToString(hashSum)
-	return hash
-}
-
-func readJSONFile(path string, v any) error {
-	// Read JSON file
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	// Unmarshal JSON data into the struct
-	err = json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func writeJSONFile(path string, v any) error {
-	// Marshal the struct into JSON format
-	data, err := json.MarshalIndent(&v, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	// Write JSON data to a file
-	err = os.WriteFile(path, data, 0644)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func fileExists(filePath string) (bool, error) {
-	// Check if the file or path exists
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		// File or path does not exist
-		return false, nil
-	} else if err != nil {
-		return false, err
-	} else {
-		// File or path already exists
-		return true, nil
-	}
-}
-
-func createFile(filePath string, data string) error {
-	// Create the file
-	file, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Write data to the file
-	_, err = file.WriteString(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func getIssuerIndex(filePath string) (IssIndex, error) {
-	var opIdx IssIndex
-	exists, err := fileExists(filePath)
-	if err != nil {
-		return IssIndex{}, err
-	}
-	if exists {
-		err := readJSONFile(filePath, &opIdx)
-		if err != nil {
-			return IssIndex{}, err
+	for _, jwk := range jwks.Keys {
+		// check if JWK already exists in ledger
+		if jwkInLedger(jwk, pklIdx) {
+			// TODO check configuration parameter for fail-safe updates
+			// then update exp time based on JWKS query timestamp if ture
+			continue
 		}
-		return opIdx, nil
+		// write new jwk ledger file
+		pklID := hashString(jwk.Kid)
+		newPklFile := PklFile{
+			Jwk: jwk.RawJSON,
+			Nbf: &timestamp,
+			Exp: nil,
+		}
+		/// test
+		data, _ := json.MarshalIndent(newPklFile, "", "  ")
+		log.Infof(string(data))
+		///
+		err = writeJSONFile(filepath.Join(LedgerPath, parsedURI.Host, pklID+LedgerFileExt), newPklFile)
+		if err != nil {
+			return err
+		}
+		// update jwk ledger index
+
+		// TODO detect key rotation (active key not in JWKS response)
 	}
-	return opIdx, nil
+
+	return nil
+}
+
+func jwkInLedger(jwk JWK, idx PklIndex) bool {
+	for _, item := range idx.Items {
+		if item.Kid == jwk.Kid {
+			return true
+		}
+	}
+	return false
 }
 
 func getPklIndex(filePath string) (PklIndex, error) {
@@ -280,18 +161,4 @@ func getPklIndex(filePath string) (PklIndex, error) {
 		return pklIdx, nil
 	}
 	return pklIdx, nil
-}
-
-func stripTrailingSlash(url string) string {
-	return strings.TrimSuffix(url, "/")
-}
-
-func lookupProvider(parsedURI *url.URL, index IssIndex) (IssIndexItem, error) {
-	nomarlizedURI := stripTrailingSlash(parsedURI.String())
-	for _, iss := range index.Issuers {
-		if iss.Issuer == nomarlizedURI {
-			return iss, nil
-		}
-	}
-	return IssIndexItem{}, nil
 }
