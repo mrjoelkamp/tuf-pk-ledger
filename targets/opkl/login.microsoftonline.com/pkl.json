@@ -1,0 +1,29 @@
+{
+  "pkl": [
+    {
+      "kid": "9GmnyFPkhc3hOuR22mvSvgnLo7Y",
+      "status": "active",
+      "path": "targets/opkl/login.microsoftonline.com/aa540640ba83dfa2bd37f32a263d05bb6cd8211e41c5de83a180c2e3397fd6ce.json"
+    },
+    {
+      "kid": "T1St-dLTvyWRgxB_676u8krXS-I",
+      "status": "active",
+      "path": "targets/opkl/login.microsoftonline.com/ae9d976383ede291d7955e76d3d03c4b376b4ef886cef2c1bba2d477790d0b04.json"
+    },
+    {
+      "kid": "lHLIu4moKqzPcokwlfCRPHyjl5g",
+      "status": "active",
+      "path": "targets/opkl/login.microsoftonline.com/e7491467841307147e685b572eac76f836e3b645557935a74b4e23b7eaec06b7.json"
+    },
+    {
+      "kid": "yreX2PsLi-qkbR8QDOmB_ySxp8Q",
+      "status": "active",
+      "path": "targets/opkl/login.microsoftonline.com/e68e1aa98a8f6b000d3ed5ede351720cc9152f14dc795f5ed5c76f19f7edf9db.json"
+    },
+    {
+      "kid": "XouXLYQ1Tip5odYajiCtFVgVaEs",
+      "status": "active",
+      "path": "targets/opkl/login.microsoftonline.com/761632234a6aa8c8f4e9462e0f02bef3dd084d58779057d66bcc8c641c61b94c.json"
+    }
+  ]
+}
