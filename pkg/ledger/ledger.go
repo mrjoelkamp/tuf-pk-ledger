@@ -1,7 +1,6 @@
 package ledger
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"path/filepath"
@@ -18,6 +17,9 @@ const (
 	IssuerIndexFilename = "issuers.json"
 	LedgerIndexFilename = "pkl.json"
 	LedgerFileExt       = ".json"
+	StatusActive        = "active"
+	StatusArchived      = "archived"
+	StatusRevoked       = "revoked"
 )
 
 var validate *validator.Validate
@@ -108,6 +110,7 @@ func Update(providerURI string) error {
 	log.Debugf("timestamp=%d", timestamp)
 
 	// for each JWK in JWKS
+	pklIdxUpdated := false
 	for _, jwk := range jwks.Keys {
 		// check if JWK already exists in ledger
 		if jwkInLedger(jwk, pklIdx) {
@@ -122,17 +125,29 @@ func Update(providerURI string) error {
 			Nbf: &timestamp,
 			Exp: nil,
 		}
-		/// test
-		data, _ := json.MarshalIndent(newPklFile, "", "  ")
-		log.Infof(string(data))
-		///
-		err = writeJSONFile(filepath.Join(LedgerPath, parsedURI.Host, pklID+LedgerFileExt), newPklFile)
+		ledgerFilePath := filepath.Join(LedgerPath, parsedURI.Host, pklID+LedgerFileExt)
+		err = writeJSONFile(ledgerFilePath, newPklFile)
 		if err != nil {
 			return err
 		}
-		// update jwk ledger index
+
+		// add JWK to ledger index
+		newPklIndexItem := PklIndexItem{
+			Kid:    jwk.Kid,
+			Status: StatusActive,
+			Path:   ledgerFilePath,
+		}
+		pklIdx.Items = append(pklIdx.Items, newPklIndexItem)
+		pklIdxUpdated = true
 
 		// TODO detect key rotation (active key not in JWKS response)
+	}
+	// write ledger index updates if modified
+	if pklIdxUpdated {
+		err = writeJSONFile(opIdxItem.Path, pklIdx)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

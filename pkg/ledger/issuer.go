@@ -54,15 +54,9 @@ func getJWKS(url *url.URL) (JWKS, int64, error) {
 	if err != nil {
 		return JWKS{}, 0, err
 	}
-	for _, jwk := range jwks.RawJSON {
-		var obj JWK
-		jsonString, err := json.Marshal(jwk)
-		err = json.Unmarshal(jsonString, &obj)
-		if err != nil {
-			return JWKS{}, 0, err
-		}
-		obj.RawJSON = jwk
-		jwks.Keys = append(jwks.Keys, obj)
+	err = jwks.Unmarshal()
+	if err != nil {
+		return JWKS{}, 0, err
 	}
 	return jwks, timestamp, nil
 }

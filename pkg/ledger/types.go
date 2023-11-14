@@ -1,5 +1,7 @@
 package ledger
 
+import "encoding/json"
+
 type JWK struct {
 	RawJSON map[string]interface{} `json:"-"`
 	Mod     string                 `json:"n"`   // required for RSA
@@ -18,6 +20,21 @@ type JWK struct {
 type JWKS struct {
 	Keys    []JWK                    `json:"-"`
 	RawJSON []map[string]interface{} `json:"keys"`
+}
+
+func (jwks *JWKS) Unmarshal() error {
+	// Unmarshal keys into []JWK while preserving original JWK JSON
+	for _, jwk := range jwks.RawJSON {
+		var obj JWK
+		jsonString, err := json.Marshal(jwk)
+		err = json.Unmarshal(jsonString, &obj)
+		if err != nil {
+			return err
+		}
+		obj.RawJSON = jwk
+		jwks.Keys = append(jwks.Keys, obj)
+	}
+	return nil
 }
 
 type PklFile struct {
