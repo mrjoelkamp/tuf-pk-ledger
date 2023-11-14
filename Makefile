@@ -35,7 +35,7 @@ build:
 get-deps:
 	dep ensure
 
-build-golang:
+build-alpine:
 	@echo "building ${BIN_NAME} ${VERSION}"
 	@echo "GOPATH=${GOPATH}"
 	go build -ldflags '-w -linkmode external -extldflags "-static" -X github.com/mrjoelkamp/opkl-updater/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/mrjoelkamp/opkl-updater/version.BuildDate=${BUILD_DATE}' -o bin/${BIN_NAME}
