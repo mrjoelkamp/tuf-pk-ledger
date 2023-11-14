@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -23,50 +24,6 @@ const (
 	IssuerIndexFilename = "issuers.json"
 	LedgerIndexFilename = "pkl.json"
 )
-
-type JWK struct {
-	RawJSON string   `json:"-"`
-	Mod     string   `json:"n"`
-	Exp     string   `json:"e"`
-	Kty     string   `json:"kty"`
-	Use     string   `json:"use,omitempty"`
-	KeyOps  []string `json:"key_ops,omitempty"`
-	Alg     string   `json:"alg,omitempty"`
-	Kid     string   `json:"kid"` // kid is OPTIONAL in RFC 7517 but currently required for OPKL
-	X5u     string   `json:"x5u,omitempty"`
-	X5c     []string `json:"x5c,omitempty"`
-	X5t     string   `json:"x5t,omitempty"`
-	X5tS256 string   `json:"x5t#S256,omitempty"`
-}
-
-type JWKS struct {
-	Keys []JWK `json:"keys"`
-}
-
-type PklFile struct {
-	Jwk map[string]interface{} `json:"jwk"`
-	Nbf int64                  `json:"nbf"`
-	Exp int64                  `json:"exp"`
-}
-
-type PklIndexItem struct {
-	Kid    string `json:"kid"`
-	Status string `json:"status"` // TODO validate it is one of active|archived|revoked
-	Path   string `json:"path"`
-}
-
-type PklIndex struct {
-	Items []PklIndexItem `json:"pkl"`
-}
-
-type IssIndexItem struct {
-	Issuer string `json:"iss"`
-	Path   string `json:"path"`
-}
-
-type IssIndex struct {
-	Issuers []IssIndexItem `json:"issuers"`
-}
 
 var validate *validator.Validate
 
@@ -89,13 +46,32 @@ func Update(providerURI string) error {
 	if err != nil {
 		return err
 	}
+	err = validate.Struct(opIdx)
+	if err != nil {
+		return err
+	}
 
 	// lookup or create provider index item
-	opIdxItem, err := lookupProvider(providerURI, opIdx)
+	opIdxItem, err := lookupProvider(parsedURI, opIdx)
 	if err != nil {
 		return err
 	}
 	log.Debugf(opIdxItem.Path)
+	if opIdxItem.Path == "" {
+		// create new entry if provider not found
+		iss := IssIndexItem{
+			Issuer: stripTrailingSlash(parsedURI.String()),
+			Path:   filepath.Join(LedgerPath, parsedURI.Host, LedgerIndexFilename),
+		}
+		// append to issuer index
+		opIdx.Issuers = append(opIdx.Issuers, iss)
+		data, err := jsonStructToString(opIdx)
+		if err != nil {
+			return err
+		}
+		createFile(filepath.Join(LedgerPath, IssuerIndexFilename), data)
+		log.Debugf("Created new provider index. issuer=%s path=%s", iss.Issuer, iss.Path)
+	}
 
 	// TODO get ledger index
 	// TODO get active keys
@@ -118,10 +94,11 @@ func Update(providerURI string) error {
 		return err
 	}
 	if cfg.GetString("loglevel") == "debug" {
-		err = prettyPrintJsonStruct(jwks)
+		json, err := jsonStructToString(jwks)
 		if err != nil {
 			return err
 		}
+		log.Debugf(json)
 	}
 	log.Debugf("timestamp=%d", timestamp)
 
@@ -186,13 +163,12 @@ func getJWKS(url *url.URL) (JWKS, int64, error) {
 	return jwks, timestamp, nil
 }
 
-func prettyPrintJsonStruct(v any) error {
+func jsonStructToString(v any) (string, error) {
 	stringData, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		return err
+		return "", err
 	}
-	log.Debugf(string(stringData))
-	return nil
+	return string(stringData), nil
 }
 
 func hashString(input string) string {
@@ -279,9 +255,14 @@ func getIssuerIndex(filePath string) (IssIndex, error) {
 	return opIdx, nil
 }
 
-func lookupProvider(provider string, index IssIndex) (IssIndexItem, error) {
+func stripTrailingSlash(url string) string {
+	return strings.TrimSuffix(url, "/")
+}
+
+func lookupProvider(parsedURI *url.URL, index IssIndex) (IssIndexItem, error) {
+	nomarlizedURI := stripTrailingSlash(parsedURI.String())
 	for _, iss := range index.Issuers {
-		if iss.Issuer == provider {
+		if iss.Issuer == nomarlizedURI {
 			return iss, nil
 		}
 	}
