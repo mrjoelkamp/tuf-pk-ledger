@@ -7,6 +7,18 @@
     {
       "iss": "https://token.actions.githubusercontent.com",
       "path": "targets/opkl/token.actions.githubusercontent.com/pkl.json"
+    },
+    {
+      "iss": "https://login.microsoftonline.com/common/v2.0",
+      "path": "targets/opkl/login.microsoftonline.com/pkl.json"
+    },
+    {
+      "iss": "https://docker.okta.com",
+      "path": "targets/opkl/docker.okta.com/pkl.json"
+    },
+    {
+      "iss": "https://accounts.google.com",
+      "path": "targets/opkl/accounts.google.com/pkl.json"
     }
   ]
 }

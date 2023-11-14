@@ -39,7 +39,7 @@ func Update(providerURI string) error {
 	if parsedURI.Scheme != "https" || !parsedURI.IsAbs() {
 		return fmt.Errorf("Provider URI [%s] is not valid", providerURI)
 	}
-	log.Debugf("[parsed uri] scheme=%s host=%s path=%s", parsedURI.Scheme, parsedURI.Host, parsedURI.Path)
+	log.Infof("[parsed uri] scheme=%s host=%s path=%s", parsedURI.Scheme, parsedURI.Host, parsedURI.Path)
 
 	// get provider index
 	opIdx, err := getIssuerIndex(filepath.Join(LedgerPath, IssuerIndexFilename))
@@ -59,22 +59,34 @@ func Update(providerURI string) error {
 	log.Debugf(opIdxItem.Path)
 	// create new entry if provider not found
 	if opIdxItem.Path == "" {
-		iss := IssIndexItem{
+		opIdxItem := IssIndexItem{
 			Issuer: stripTrailingSlash(parsedURI.String()),
 			Path:   filepath.Join(LedgerPath, parsedURI.Host, LedgerIndexFilename),
 		}
 		// append to issuer index
-		opIdx.Issuers = append(opIdx.Issuers, iss)
+		opIdx.Issuers = append(opIdx.Issuers, opIdxItem)
 		data, err := jsonStructToString(opIdx)
 		if err != nil {
 			return err
 		}
 		createFile(filepath.Join(LedgerPath, IssuerIndexFilename), data)
-		log.Debugf("Created new provider index. issuer=%s path=%s", iss.Issuer, iss.Path)
+		log.Infof("Created new provider index. issuer=%s path=%s", opIdxItem.Issuer, opIdxItem.Path)
 	}
 
-	// TODO get ledger index
-	// TODO get active keys
+	// get key ledger index
+	// pklIdx, err := getPklIndex(opIdxItem.Path)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// get active keys
+	// var activeJWKs []JWK
+	// for _, jwkIdx := range pklIdx.Items {
+	// 	if jwkIdx.Status == "active" {
+
+	// 		activeJWKs = append(activeJWKs, jwkIdx.Path)
+	// 	}
+	// }
 
 	// query openid-configuration
 	cfgOIDC, err := getOpenIDConfiguration(parsedURI)
@@ -85,7 +97,6 @@ func Update(providerURI string) error {
 	if !ok {
 		log.Errorf("Key '%s' not found in configuration", jwksURI)
 	}
-	log.Debugf("%s=%s", JwksKey, jwksURI)
 	parsedJwksURI, err := url.ParseRequestURI(jwksURI)
 
 	// query JWKS URI and record time
@@ -253,6 +264,22 @@ func getIssuerIndex(filePath string) (IssIndex, error) {
 		return opIdx, nil
 	}
 	return opIdx, nil
+}
+
+func getPklIndex(filePath string) (PklIndex, error) {
+	var pklIdx PklIndex
+	exists, err := fileExists(filePath)
+	if err != nil {
+		return PklIndex{}, err
+	}
+	if exists {
+		err := readJSONFile(filePath, &pklIdx)
+		if err != nil {
+			return PklIndex{}, err
+		}
+		return pklIdx, nil
+	}
+	return pklIdx, nil
 }
 
 func stripTrailingSlash(url string) string {
