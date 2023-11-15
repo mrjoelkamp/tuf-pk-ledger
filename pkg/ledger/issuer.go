@@ -23,16 +23,16 @@ func parseProviderURI(providerURI string) (*url.URL, error) {
 	return parsedURI, nil
 }
 
-func createNewProviderIndexEntry(parsedURI *url.URL, opIdx IssIndex) (IssIndexItem, error) {
+func createNewProviderIndexEntry(parsedURI *url.URL, opIdx IssIndex) (*IssIndexItem, error) {
 	issuer := stripTrailingSlash(parsedURI.String())
-	opIdxItem := IssIndexItem{
-		Path: filepath.Join(LedgerPath, parsedURI.Host, LedgerIndexFilename),
-	}
+	opIdxItem := new(IssIndexItem)
+	opIdxItem.Path = filepath.Join(LedgerPath, parsedURI.Host, LedgerIndexFilename)
+
 	// add to issuer index
-	opIdx.Issuers[issuer] = opIdxItem
+	opIdx.Issuers[issuer] = *opIdxItem
 	err := writeJSONFile(filepath.Join(LedgerPath, IssuerIndexFilename), opIdx)
 	if err != nil {
-		return IssIndexItem{}, err
+		return nil, err
 	}
 	log.Infof("Created new provider index. issuer=%s path=%s", issuer, opIdxItem.Path)
 	return opIdxItem, nil
@@ -64,11 +64,11 @@ func getOpenIDConfiguration(url *url.URL) (map[string]interface{}, error) {
 	return config, nil
 }
 
-func getJWKS(providerURI *url.URL) (JWKS, int64, error) {
+func getJWKS(providerURI *url.URL) (*JWKS, int64, error) {
 	// query openid-configuration for jwks_uri
 	cfgOIDC, err := getOpenIDConfiguration(providerURI)
 	if err != nil {
-		return JWKS{}, 0, err
+		return nil, 0, err
 	}
 	jwksURI, ok := cfgOIDC[JwksKey].(string)
 	if !ok {
@@ -79,25 +79,25 @@ func getJWKS(providerURI *url.URL) (JWKS, int64, error) {
 	// Make a GET request to the JWKS endpoint
 	resp, err := http.Get(parsedJwksURI.String())
 	if err != nil {
-		return JWKS{}, 0, err
+		return nil, 0, err
 	}
 	defer resp.Body.Close()
 	timestamp := time.Now().Unix()
 
 	// Check if the response status code is OK (200)
 	if resp.StatusCode != http.StatusOK {
-		return JWKS{}, 0, fmt.Errorf("Failed to retrieve JWKS. Status code: %d", resp.StatusCode)
+		return nil, 0, fmt.Errorf("Failed to retrieve JWKS. Status code: %d", resp.StatusCode)
 	}
 
 	// Parse the JSON response
-	var jwks JWKS
-	err = json.NewDecoder(resp.Body).Decode(&jwks)
+	jwks := new(JWKS)
+	err = json.NewDecoder(resp.Body).Decode(jwks)
 	if err != nil {
-		return JWKS{}, 0, err
+		return nil, 0, err
 	}
-	err = jwks.Unmarshal()
+	err = jwks.Unmarshal() // TODO - implement this as json unmarshal interface
 	if err != nil {
-		return JWKS{}, 0, err
+		return nil, 0, err
 	}
 	return jwks, timestamp, nil
 }
@@ -118,11 +118,11 @@ func getIssuerIndex(filePath string) (IssIndex, error) {
 	return opIdx, nil
 }
 
-func lookupProvider(parsedURI *url.URL, index IssIndex) (IssIndexItem, error) {
+func lookupProvider(parsedURI *url.URL, index IssIndex) *IssIndexItem {
 	nomarlizedURI := stripTrailingSlash(parsedURI.String())
 	iss, ok := index.Issuers[nomarlizedURI]
 	if ok {
-		return iss, nil
+		return &iss
 	}
-	return IssIndexItem{}, nil
+	return nil
 }
