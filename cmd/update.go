@@ -13,10 +13,10 @@ var updateCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
-			log.Fatalln("The provider URI argument is required")
+			log.Fatal("The provider URI argument is required")
 		}
 		if err := UpdateLedger(cmd, args); err != nil {
-			log.Fatalf("%v", err)
+			log.Fatal(err.Error())
 		}
 	},
 }

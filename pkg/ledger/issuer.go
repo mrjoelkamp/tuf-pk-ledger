@@ -19,7 +19,7 @@ func parseProviderURI(providerURI string) (*url.URL, error) {
 	if parsedURI.Scheme != "https" || !parsedURI.IsAbs() {
 		return nil, fmt.Errorf("Provider URI [%s] is not valid", providerURI)
 	}
-	log.Infof("[parsed uri] scheme=%s host=%s path=%s", parsedURI.Scheme, parsedURI.Host, parsedURI.Path)
+	log.Info("parsed uri", "scheme", parsedURI.Scheme, "host", parsedURI.Host, "path", parsedURI.Path)
 	return parsedURI, nil
 }
 
@@ -34,7 +34,7 @@ func createNewProviderIndexEntry(parsedURI *url.URL, opIdx IssIndex) (*IssIndexI
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("Created new provider index. issuer=%s path=%s", issuer, opIdxItem.Path)
+	log.Info("Created new provider index.", "issuer", issuer, "path", opIdxItem.Path)
 	return opIdxItem, nil
 }
 
@@ -72,7 +72,7 @@ func getJWKS(providerURI *url.URL) (*JWKS, int64, error) {
 	}
 	jwksURI, ok := cfgOIDC[JwksKey].(string)
 	if !ok {
-		log.Errorf("Key '%s' not found in configuration", jwksURI)
+		log.Error("Key not found in configuration", "key", jwksURI)
 	}
 	parsedJwksURI, err := url.ParseRequestURI(jwksURI)
 

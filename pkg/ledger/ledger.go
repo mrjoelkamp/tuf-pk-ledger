@@ -69,8 +69,8 @@ func Update(providerURI string) error {
 		if err != nil {
 			return err
 		}
-		log.Debugf(json)
-		log.Debugf("timestamp=%d", timestamp)
+		log.Debug(json)
+		log.Debug("jwks query", "timestamp", timestamp)
 	}
 
 	// update JWK ledger files based on JWKS response from OP
@@ -129,7 +129,7 @@ func Update(providerURI string) error {
 
 func handleRotatedJWK(pklIdx PklIndex, expectedActiveJWKs map[string]PklIndexItem, timestamp int64) (bool, error) {
 	if len(expectedActiveJWKs) > 0 {
-		log.Infof("remaining active JWKs: %d", len(expectedActiveJWKs))
+		log.Info("handled rotated JWK", "remaining", len(expectedActiveJWKs))
 		// key was rotated set exp and update ledger index
 		for id, rotatedJWK := range expectedActiveJWKs {
 			// set exp for jwk
