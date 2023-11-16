@@ -79,7 +79,10 @@ func Update(providerURI string) error {
 		// check if JWK already exists in ledger
 		if jwkInLedger(jwk, pklIdx) {
 			// reconcile active jwk to detect key rotation (active key not in JWKS response)
-			reconcileExpectedJWK(jwk, expectedActiveJWKs)
+			_, ok := expectedActiveJWKs[jwk.Kid]
+			if ok {
+				delete(expectedActiveJWKs, jwk.Kid)
+			}
 
 			// TODO check configuration parameter for fail-safe updates
 			// then update exp time based on JWKS query timestamp if true
@@ -107,8 +110,8 @@ func Update(providerURI string) error {
 		pklIdxUpdated = true
 	}
 
-	// detect rotated keys
-	pklIdxUpdated, err = detectRotatedJWK(pklIdx, expectedActiveJWKs, timestamp)
+	// detect if any keys rotated and update their exipration timestamp
+	pklIdxUpdated, err = handleRotatedJWK(pklIdx, expectedActiveJWKs, timestamp)
 	if err != nil {
 		return err
 	}
@@ -124,7 +127,7 @@ func Update(providerURI string) error {
 	return nil
 }
 
-func detectRotatedJWK(pklIdx PklIndex, expectedActiveJWKs map[string]PklIndexItem, timestamp int64) (bool, error) {
+func handleRotatedJWK(pklIdx PklIndex, expectedActiveJWKs map[string]PklIndexItem, timestamp int64) (bool, error) {
 	if len(expectedActiveJWKs) > 0 {
 		log.Infof("remaining active JWKs: %d", len(expectedActiveJWKs))
 		// key was rotated set exp and update ledger index
@@ -151,13 +154,6 @@ func detectRotatedJWK(pklIdx PklIndex, expectedActiveJWKs map[string]PklIndexIte
 		}
 	}
 	return false, nil
-}
-
-func reconcileExpectedJWK(jwk JWK, activeJWKs map[string]PklIndexItem) {
-	_, ok := activeJWKs[jwk.Kid]
-	if ok {
-		delete(activeJWKs, jwk.Kid)
-	}
 }
 
 func jwkInLedger(jwk JWK, idx PklIndex) bool {
