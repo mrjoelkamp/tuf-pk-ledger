@@ -1,5 +1,5 @@
 # Build Stage
-FROM golang:1.21 AS build-stage
+FROM golang:1.21-alpine AS build-stage
 
 LABEL app="build-opkl-updater"
 LABEL REPO="https://github.com/mrjoelkamp/opkl-updater"
