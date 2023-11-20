@@ -1,12 +1,12 @@
 name: Update OPKL
 run-name: Update OPKL - ${{ inputs.op_uri }}
 on:
-    workflow_dispatch:
-        inputs:
-            op_uri:
-                description: OIDC provider discovery URI
-                required: true
-                default: https://token.actions.githubusercontent.com
+  workflow_dispatch:
+    inputs:
+      op_uri:
+          description: OIDC provider discovery URI
+          required: true
+          default: https://token.actions.githubusercontent.com
 jobs:
     update-opkl:
         runs-on: ubuntu-latest
@@ -16,10 +16,18 @@ jobs:
             - name: checkout repository
               uses: actions/checkout@v4
             - name: update ledger files
-              env:
-                OP_URI: ${{ inputs.op_uri }}
-              run: ./.github/workflows/scripts/update-ledger-files.sh
-            - name: commit changes
+              uses: mrjoelkamp/tuf-pk-ledger@main
+              with:
+                provider_uri: ${{ inputs.op_uri }}
+            - name: push changes
               env:
                 COMMIT_MESSAGE: "chore: update opkl ledger files for ${{ inputs.op_uri }}"
-              run: ./.github/workflows/scripts/git-commit.sh
+                BRANCH: "sign/opkl-${{ github.run_id }}"
+              run: |
+                git config user.name opkl-update-agent
+                git config user.email mrjoelkamp@gmail.com
+                git checkout -b "${BRANCH}"
+                git add .
+                git commit -m "${COMMIT_MESSAGE}"
+                git push --set-upstream origin "${BRANCH}"
+

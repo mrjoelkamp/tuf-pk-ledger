@@ -1,0 +1,17 @@
+name: Update OPKL
+author: mrjoelkamp
+description: Updates an OIDC provider public key ledger
+inputs:
+  provider_uri:
+    description: OIDC provider discovery URI
+    required: true
+    default: https://token.actions.githubusercontent.com
+runs:
+  using: docker
+  image: docker://joelkamp995/jwkstuf:latest
+  args:
+    - /opt/jwkstuf/bin/jwkstuf
+    - update
+    - ${{ inputs.provider_uri }}
+  env:
+    JWKSTUF_path: /github/workspace
