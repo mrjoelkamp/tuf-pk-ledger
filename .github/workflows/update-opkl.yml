@@ -1,27 +1,30 @@
 name: Update OPKL
-run-name: Update OPKL - ${{ inputs.op_uri }}
+run-name: Update OPKL
 on:
-  workflow_dispatch:
-    inputs:
-      op_uri:
-          description: OIDC provider discovery URI
-          required: true
-          default: https://token.actions.githubusercontent.com
+    workflow_dispatch:
 jobs:
     update-opkl:
         runs-on: ubuntu-latest
         permissions:
             contents: write
+        strategy:
+          matrix:
+            op: 
+              - https://token.actions.githubusercontent.com
+              - https://accounts.google.com
+              - https://docker.okta.com
+              - https://gitlab.com
+              - https://login.microsoftonline.com/common/v2.0
         steps:
             - name: checkout repository
               uses: actions/checkout@v4
             - name: update ledger files
               uses: mrjoelkamp/tuf-pk-ledger@main
               with:
-                provider_uri: ${{ inputs.op_uri }}
+                provider_uri: ${{ matrix.op }}
             - name: push changes
               env:
-                COMMIT_MESSAGE: "chore: update opkl ledger files for ${{ inputs.op_uri }}"
+                COMMIT_MESSAGE: "chore: update opkl ledger files for ${{ matrix.op }}"
                 BRANCH: "sign/opkl-${{ github.run_id }}"
               run: |
                 git config user.name opkl-update-agent
@@ -29,5 +32,9 @@ jobs:
                 git checkout -b "${BRANCH}"
                 git add .
                 git commit -m "${COMMIT_MESSAGE}"
-                git push --set-upstream origin "${BRANCH}"
-
+                if [ -z "${err}" ]; then
+                  for (( i=1; i<=10; i++ )); do
+                    git push --set-upstream origin "${BRANCH}" && break || sleep 1
+                    git pull origin "${BRANCH}" 
+                  done
+                fi
