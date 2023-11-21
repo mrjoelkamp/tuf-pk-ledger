@@ -37,6 +37,6 @@ jobs:
                     git push --set-upstream origin "${BRANCH}" && break || sleep $((RANDOM % 4 + 1))
                     git fetch
                     git branch -u "origin/${BRANCH}" "${BRANCH}"
-                    git pull --rebase
+                    git pull
                   done
                 fi
