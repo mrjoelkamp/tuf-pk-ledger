@@ -19,7 +19,7 @@ jobs:
             - name: checkout repository
               uses: actions/checkout@v4
             - name: update ledger files
-              uses: mrjoelkamp/tuf-pk-ledger@main
+              uses: mrjoelkamp/tuf-pk-ledger@test-matrix
               with:
                 provider_uri: ${{ matrix.op }}
             - name: push changes
