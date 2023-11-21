@@ -14,4 +14,4 @@ runs:
     - update
     - ${{ inputs.provider_uri }}
   env:
-    JWKSTUF_path: /github/workspace
+    JWKSTUF_PATH: /github/workspace
