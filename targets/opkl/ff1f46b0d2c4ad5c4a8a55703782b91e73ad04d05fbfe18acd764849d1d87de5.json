@@ -1,0 +1,14 @@
+{
+  "iss": "https://accounts.google.com",
+  "sts": "active",
+  "jwk": {
+    "alg": "RS256",
+    "e": "AQAB",
+    "kid": "0e72da1df501ca6f756bf103fd7c720294772506",
+    "kty": "RSA",
+    "n": "vZgPf9nruMYY71q5pgThDwmk6Z3DD7cwN-Z52__b4xHeY95wOeKpjSliaI8K1PpeBbm4NykHm6UmfB_pCw5P2owpHZ8JEF2FCeDFKcOtZOzolYVgKZY8Sunqxcr3Sm0n73jbGcPgqu5PpjnOR4WkZCnpmDEZ34KNQat_MYYNUZZE2RlbpppNHiLatdiLW-rWi9YCmpsE4EIdd-XKIyZpQZRKaAl-w72BboTD_Koq2CkAOZOab73Q_G5FVT0NrxEWqP6artVfg5Dc_VVPnvtsC9yMe8lNgU3c3a-mE-vzE9oxAjr0s8Ek0Ih_sv-CbWL8xHiI7MOygIPG_aQqvMhPaQ",
+    "use": "sig"
+  },
+  "nbf": 1700584113,
+  "exp": null
+}
