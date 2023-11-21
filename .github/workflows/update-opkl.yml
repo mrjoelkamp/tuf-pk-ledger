@@ -29,7 +29,6 @@ jobs:
               run: |
                 git config user.name opkl-update-agent
                 git config user.email mrjoelkamp@gmail.com
-                git config pull.rebase false
                 git checkout -b "${BRANCH}"
                 git add .
                 git commit -m "${COMMIT_MESSAGE}" || err=$?
@@ -38,6 +37,6 @@ jobs:
                     git push --set-upstream origin "${BRANCH}" && break || sleep $((RANDOM % 4 + 1))
                     git fetch
                     git branch -u "origin/${BRANCH}" "${BRANCH}"
-                    git pull
+                    git pull --rebase
                   done
                 fi
