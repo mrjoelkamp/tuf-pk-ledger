@@ -21,7 +21,7 @@ jobs:
       - name: find existing branch
         id: find_existing_branch
         run: |
-          git ls-remote --exit-code --heads ${{ github.server_url }}/${{ github.repository }} refs/heads/${{ env.BRANCH }}
+          git ls-remote --exit-code --heads ${{ github.server_url }}/${{ github.repository }} refs/heads/${{ env.BRANCH }} || 
           if [ "$?" == "0" ] ; then
             echo "checkout_branch=${{ env.BRANCH }}" >> $GITHUB_OUTPUT
           fi
@@ -39,7 +39,7 @@ jobs:
         run: |
           git config user.name opkl-update-agent
           git config user.email mrjoelkamp@gmail.com
-          git checkout -b "${{ env.BRANCH }}"
+          git checkout -B "${{ env.BRANCH }}"
           git add .
           git commit -m "${COMMIT_MESSAGE}" || err=$?
           if [ -z "${err}" ]; then
