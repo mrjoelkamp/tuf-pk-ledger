@@ -6,12 +6,16 @@ inputs:
     description: OIDC provider discovery URI
     required: true
     default: https://token.actions.githubusercontent.com
+  tuf_path:
+    description: Path to root of TUF repo
+    required: true
+    default: /github/workspace
 runs:
   using: docker
-  image: docker://joelkamp995/jwkstuf:latest
+  image: docker://docker/jwkstuf:latest
   args:
     - /opt/jwkstuf/bin/jwkstuf
     - update
     - ${{ inputs.provider_uri }}
   env:
-    JWKSTUF_PATH: /github/workspace
+    JWKSTUF_PATH: ${{ inputs.tuf_path }}

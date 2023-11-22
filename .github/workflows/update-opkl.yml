@@ -1,43 +1,44 @@
 name: Update OPKL
 run-name: Update OPKL
 on:
-    workflow_dispatch:
+  workflow_dispatch:
+env:
+  BRANCH: sign/opkl
 jobs:
-    update-opkl:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-        strategy:
-          matrix:
-            op: 
-              - https://token.actions.githubusercontent.com
-              - https://accounts.google.com
-              - https://docker.okta.com
-              - https://gitlab.com
-              - https://login.microsoftonline.com/common/v2.0
-        steps:
-            - name: checkout repository
-              uses: actions/checkout@v4
-            - name: update ledger files
-              uses: mrjoelkamp/tuf-pk-ledger@test-matrix
-              with:
-                provider_uri: ${{ matrix.op }}
-            - name: push changes
-              env:
-                COMMIT_MESSAGE: "chore: update opkl ledger files for ${{ matrix.op }}"
-                BRANCH: "sign/opkl-${{ github.run_id }}"
-              run: |
-                git config user.name opkl-update-agent
-                git config user.email mrjoelkamp@gmail.com
-                git checkout -b "${BRANCH}"
-                git add .
-                git commit -m "${COMMIT_MESSAGE}" || err=$?
-                if [ -z "${err}" ]; then
-                  for (( i=1; i<=10; i++ )); do
-                    ls -la targets/opkl
-                    git push --set-upstream origin "${BRANCH}" && break || sleep $((RANDOM % 4 + 1))
-                    git fetch
-                    git branch -u "origin/${BRANCH}" "${BRANCH}"
-                    git pull --rebase
-                  done
-                fi
+  update-opkl:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        op:
+          - https://token.actions.githubusercontent.com
+          - https://accounts.google.com
+          - https://docker.okta.com
+          - https://gitlab.com
+          - https://login.microsoftonline.com/common/v2.0
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+      - name: update ledger files
+        uses: mrjoelkamp/tuf-pk-ledger@test-matrix
+        with:
+          provider_uri: ${{ matrix.op }}
+      - name: push changes
+        env:
+          COMMIT_MESSAGE: "chore: update opkl ledger files for ${{ matrix.op }}"
+        run: |
+          git config user.name opkl-update-agent
+          git config user.email mrjoelkamp@gmail.com
+          git checkout -b "${{ env.BRANCH }}"
+          git add .
+          git commit -m "${COMMIT_MESSAGE}" || err=$?
+          if [ -z "${err}" ]; then
+            for (( i=1; i<=10; i++ )); do
+              ls -la targets/opkl
+              git push --set-upstream origin "${{ env.BRANCH }}" && break || sleep $((RANDOM % 4 + 1))
+              git fetch
+              git branch -u "origin/${{ env.BRANCH }}" "${{ env.BRANCH }}"
+              git pull --rebase
+            done
+          fi
