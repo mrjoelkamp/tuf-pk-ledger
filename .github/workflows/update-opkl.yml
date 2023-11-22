@@ -18,8 +18,17 @@ jobs:
           - https://gitlab.com
           - https://login.microsoftonline.com/common/v2.0
     steps:
+      - name: find existing branch
+        id: find_existing_branch
+        run: |
+          git ls-remote --exit-code --heads ${{ github.server_url }}/${{ github.repository }} refs/heads/${{ env.BRANCH }}
+          if [ "$?" == "0" ] ; then
+            echo "checkout_branch=${{ env.BRANCH }}" >> $GITHUB_OUTPUT
+          fi
       - name: checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.find_existing_branch.outputs.checkout_branch }}
       - name: update ledger files
         uses: mrjoelkamp/tuf-pk-ledger@test-matrix
         with:
