@@ -1,5 +1,5 @@
 # Build Stage
-FROM golang:1.21-alpine AS build-stage
+FROM golang:1.21 AS build-stage
 
 LABEL app="build-opkl-updater"
 LABEL REPO="https://github.com/mrjoelkamp/opkl-updater"
@@ -28,12 +28,10 @@ ENV PATH=$PATH:/opt/opkl-updater/bin
 
 WORKDIR /opt/opkl-updater/bin
 
-COPY --from=build-stage /go/src/opkl-updater/bin/opkl-updater \
-/go/src/opkl-updater/config.opkl-updater.yaml /opt/opkl-updater/bin/
-RUN chmod +x /opt/opkl-updater/bin/opkl-updater
-
 # Create appuser
-RUN adduser -D -g '1000' opkl-updater
-USER opkl-updater
+RUN adduser -D -u '1001' github
+USER github
+
+COPY --from=build-stage /go/src/opkl-updater/bin/opkl-updater /opt/opkl-updater/bin/
 
 CMD ["/opt/opkl-updater/bin/opkl-updater"]
