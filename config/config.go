@@ -56,13 +56,11 @@ func readViperConfig(appName string, configFilePath string) *viper.Viper {
 	// Read configuration from file
 	if configFilePath != "" {
 		v.SetConfigFile(configFilePath)
-		if err := v.ReadInConfig(); err != nil {
-			log.Fatalf(err.Error())
+		if err := v.MergeInConfig(); err != nil {
+			log.Print(err.Error())
+			log.Print("using defaults and environment variables only")
 		}
 	}
-
-	// Merge with environment variables
-	v.MergeInConfig()
 
 	return v
 }
