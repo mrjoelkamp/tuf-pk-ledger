@@ -1,3 +1,6 @@
+# NOTE
+This development has been moved to https://github.com/docker/jwkstuf/
+
 # tuf-on-ci-template
 
 This is a template for TUF repositories running [TUF-on-CI](https://github.com/theupdateframework/tuf-on-ci).
